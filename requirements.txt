@@ -1,0 +1,27 @@
+# Core scheduling and database dependencies
+neo4j
+networkx
+python-dateutil
+pytz
+schedule
+
+# CLI and configuration
+click
+pydantic
+python-dotenv
+
+# OpenAI and async support
+openai
+aiohttp
+
+# Data processing utilities
+pandas
+numpy
+
+# Development and testing dependencies
+pytest
+pytest-asyncio
+pytest-cov
+black
+flake8
+mypy
