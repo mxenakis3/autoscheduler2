@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: autoscheduler-neo4j
+    ports:
+      - "7474:7474"  # Web interface
+      - "7687:7687"  # Bolt protocol
+    environment:
+      # Authentication
+      NEO4J_AUTH: neo4j/password
+      
+      # Database configuration
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+      NEO4J_dbms_security_procedures_allowlist: apoc.*
+      
+      # Memory settings
+      NEO4J_dbms_memory_heap_initial__size: 512m
+      NEO4J_dbms_memory_heap_max__size: 1G
+      NEO4J_dbms_memory_pagecache_size: 512m
+      
+      # Performance settings
+      NEO4J_dbms_default__listen__address: 0.0.0.0
+      NEO4J_dbms_connector_bolt_listen__address: 0.0.0.0:7687
+      NEO4J_dbms_connector_http_listen__address: 0.0.0.0:7474
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+      - neo4j_plugins:/plugins
+    # restart defines how and when Docker should automatically restart a container if it stops or the system reboots
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "password", "RETURN 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  chromadb:
+    image: chromadb/chroma:0.4.24
+    container_name: autoscheduler-chromadb
+    ports:
+      - "8000:8000"
+    environment:
+      # ChromaDB configuration
+      CHROMA_SERVER_HOST: 0.0.0.0
+      CHROMA_SERVER_PORT: 8000
+      
+      # Authentication (optional - can be enabled later)
+      # CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER: chromadb.auth.basic_authn.BasicAuthCredentialsProvider
+      # CHROMA_SERVER_AUTH_CREDENTIALS: admin:password
+      
+      # Telemetry (disable for privacy)
+      ANONYMIZED_TELEMETRY: false
+    volumes:
+      - chromadb_data:/chroma/chroma
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  # Neo4j persistent volumes
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  neo4j_import:
+    driver: local
+  neo4j_plugins:
+    driver: local
+    
+  # ChromaDB persistent volume
+  chromadb_data:
+    driver: local
+
+networks:
+  default:
+    name: autoscheduler-network
+    driver: bridge

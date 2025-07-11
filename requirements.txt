@@ -5,14 +5,20 @@ python-dateutil
 pytz
 schedule
 
+# Vector database and embeddings
+chromadb
+sentence-transformers
+
 # CLI and configuration
 click
 pydantic
 python-dotenv
+typing-extensions
 
 # OpenAI and async support
 openai
 aiohttp
+uvloop
 
 # Data processing utilities
 pandas
@@ -25,3 +31,6 @@ pytest-cov
 black
 flake8
 mypy
+
+# Additional utilities
+tqdm

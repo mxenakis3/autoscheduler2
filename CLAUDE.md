@@ -4,53 +4,99 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the **autoscheduler2** project - a scheduling automation tool that is currently in its initial setup phase. The repository contains only documentation and setup notes, with no application code implemented yet.
+**Autoscheduler2** is a Python-based project management scheduling tool that uses LLM agents to automate Critical Path Method (CPM) scheduling. The system uses AI to generate, modify, and remove project scope on behalf of users, with semantic search capabilities for querying schedules.
 
 ## Development Environment
 
 - **Platform**: WSL (Windows Subsystem for Linux) running Ubuntu
-- **Runtime**: Python (all schedule management will be done in Python)
-- **Database**: Neo4j graph database (planned, to be run via Docker)
-- **AI Assistant**: Claude CLI for development assistance
-
-## Setup Instructions
-
-Based on the README.md, the development environment requires:
-
-1. **Python**: Primary programming language for schedule management
-2. **WSL/Ubuntu**: Linux environment on Windows
-3. **Docker**: For containerization (Neo4j database)
-4. **Claude CLI**: Available via `claude` command
+- **Runtime**: Python with virtual environment
+- **Databases**: 
+  - Neo4j graph database (stores network topology)
+  - Vector database with OpenAI embeddings (semantic search)
+- **AI Integration**: OpenAI API for LLM agents and embeddings
+- **Docker**: For Neo4j containerization
 
 ## Key Commands
 
-Since this is an empty project, standard commands are not yet established. When development begins, typical commands would include:
+```bash
+# Environment setup
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 
-- `python -m venv venv` - Create virtual environment
-- `source venv/bin/activate` - Activate virtual environment
-- `pip install -r requirements.txt` - Install dependencies
-- `python main.py` - Run the application (once configured)
-- `pytest` - Run tests (once configured)
-- `docker ps` - Check running containers
-- `docker start <name>` - Start a container
+# Development
+python main.py                    # Run the CLI application
+pytest                           # Run tests
+black .                          # Format code
+flake8 .                         # Lint code
+mypy .                           # Type checking
 
-## Architecture Notes
+# Docker commands for Neo4j
+docker ps                        # Check running containers
+docker start <neo4j-container>   # Start Neo4j container
+```
 
-The project appears to be planned as a Python application with:
-- **Backend**: Python for schedule management logic
-- **Database**: Neo4j graph database
-- **Deployment**: Docker containers
-- **Development**: WSL environment
+## Core Architecture
+
+The system follows a multi-layered architecture with distinct separation of concerns:
+
+### Data Layer
+- **Neo4j Graph Database**: Stores complete network topology including activity sub-nodes (start, end, intra-activity nodes)
+- **Vector Database**: OpenAI embeddings for activities and inter-activity relationships, enabling semantic search
+
+### Domain Models (Pydantic Schemas)
+- **ActivitySchema**: Represents project activities with UUID, name, description, duration
+- **RelationshipSchema**: Represents dependencies between activities (FS, SS, FF, SF types)
+- **RelationshipType**: Enum for relationship types (Finish-to-Start, Start-to-Start, etc.)
+
+### Core Classes
+
+#### Schedule Class
+- Manages dual database representation (Neo4j + Vector embeddings)
+- Maintains NetworkX DiGraph for critical path calculations
+- Handles activity and relationship CRUD operations with two-phase commits
+
+#### ScopeManager Class
+- Primary interface between CLI and schedule logic
+- Processes natural language requests into structured scope changes
+- Key methods:
+  - `_dispatch()`: Main entry point for user commands
+  - `_separate_prompt()`: Splits user input into additions/removals
+  - `_read_scope()`: Converts prompts to function calls using LLM tools
+  - `_add_scope()` / `_remove_scope()`: Execute scope modifications
+  - `_add_activity()` / `_delete_activity()`: Activity management
+  - `_add_relationship()` / `_delete_relationship()`: Relationship management
+  - `_dissolve_activity()`: Removes activity while preserving relationships
+
+#### CLI Class
+- Provides interactive command-line interface
+- Offers structured menu options for direct operations
+- Includes open-ended prompt mode for natural language interaction
+
+#### LLMClient Class
+- Handles OpenAI API interactions
+- Provides methods for:
+  - `prompt()`: Basic chat completions
+  - `prompt_with_tools()`: Tool-calling functionality
+  - `parse_structured()`: Structured output parsing
+
+### Activity Representation Model
+Activities are represented as three-node structures in Neo4j:
+- **Start Node** (s-prefix): Activity beginning
+- **End Node** (e-prefix): Activity completion  
+- **Intra-Activity Node**: Represents duration between start and end
+- Connected by directed edges with zero weight (duration picked up by intra-node)
+
+### Relationship Handling
+- **Intra-Activity**: Relationships within activities (start→duration→end)
+- **Inter-Activity**: Dependencies between different activities
+- **Database Strategy**: All nodes in Neo4j, but only high-level activities and inter-activity relationships in vector database
+
+## Semantic Search Strategy
+- Vector database queries identify relevant activities/relationships
+- LLM agents make decisions on specific modifications
+- Operations execute within activity sub-nodes to prevent incomplete semantic search issues
+- Two-phase commit ensures data consistency across both databases
 
 ## Current State
-
-This is a newly initialized repository with only setup documentation. The actual application architecture, build process, and testing framework have not yet been implemented.
-
-## Next Development Steps
-
-To make this repository functional, it needs:
-1. `package.json` initialization
-2. Source code directory structure
-3. Core application files
-4. Testing framework setup
-5. Build and deployment configuration
+The project has detailed architectural documentation and requirements.txt but no implementation code yet. The architecture is designed for a sophisticated scheduling system with AI-driven scope management.

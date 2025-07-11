@@ -107,7 +107,7 @@ Scope Manager Class: Interface between CLI and schedule. Parses user requests in
     * Inputs:   
       * None  
     * Outputs:  
-      * None  
+      * bool: True if user accepts changes, False if user rejects or cancels  
     * Function:  
       * Cache the current schedule  
         * If user cancels or exits, schedule should be restored to this state  
@@ -169,7 +169,7 @@ Scope Manager Class: Interface between CLI and schedule. Parses user requests in
     * Inputs:  
       * Removal\_prompt: Derived prompt describing removals that need to take place  
     * Outputs:  
-      * None  
+      * bool: True if all removals successful, False if any failed  
     * Access via:  
       * \_dispatch  
     * Function:  
@@ -191,7 +191,7 @@ Scope Manager Class: Interface between CLI and schedule. Parses user requests in
     * Inputs:  
       * Additions\_prompt: Derived prompt representing additions to scope to make  
     * Outputs:  
-      * None  
+      * bool: True if all additions successful, False if any failed  
     * Accessed via:  
       * \_dispatch  
     * Function:  
@@ -216,7 +216,7 @@ Scope Manager Class: Interface between CLI and schedule. Parses user requests in
       * Prompt (optional): string   
       * Activity() (optional): ActivitySchema  
     * Outputs:   
-      * None  
+      * bool: True if activity successfully added, False if failed  
     * Accessed via:  
       * CLI (user chooses add activity option from CLI)  
       * Dispatch:  
@@ -240,7 +240,7 @@ Scope Manager Class: Interface between CLI and schedule. Parses user requests in
       * Prompt (optional)  
       * RelationshipFormat() (optional)  
     * Outputs:  
-      * None  
+      * bool: True if relationship successfully added, False if failed  
     * Accessed via:  
       * CLI (user chooses add relationship option from CLI)  
       * Dispatch:  
@@ -257,9 +257,9 @@ Scope Manager Class: Interface between CLI and schedule. Parses user requests in
   * \_delete\_activity:  
     * Inputs:  
       * Prompt (optional): string   
-      * activity\_id (optional): uiud  
+      * activity\_id (optional): uuid  
     * Outputs:  
-      * None  
+      * bool: True if activity successfully deleted, False if not found or failed  
     * Accessed via:  
       * CLI  
       * Dispatch:  
@@ -274,7 +274,7 @@ Scope Manager Class: Interface between CLI and schedule. Parses user requests in
       * Prompt (optional): string   
       * activity\_id (optional): uuid  
     * Outputs:  
-      * None  
+      * bool: True if activity successfully dissolved, False if not found or failed  
     * Accessed via:  
       * CLI  
       * Dispatch:  
@@ -289,9 +289,9 @@ Scope Manager Class: Interface between CLI and schedule. Parses user requests in
   * \_delete\_relationship:  
     * Inputs:  
       * Prompt (optional): string   
-      *  RelationshipFormat() (optional): uuid  
+      * RelationshipFormat() (optional): uuid  
     * Outputs:  
-      * None  
+      * bool: True if relationship successfully deleted, False if not found or failed  
     * Accessed via:  
       * CLI  
       * Dispatch:  
